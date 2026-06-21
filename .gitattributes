@@ -1,0 +1,6 @@
+# Keep LF everywhere — CI bash steps and Nix/shell scripts break on CRLF.
+* text=auto eol=lf
+*.bin binary
+*.img binary
+*.zst binary
+*.png binary
