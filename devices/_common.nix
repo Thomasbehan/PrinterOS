@@ -6,6 +6,8 @@
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nix.settings.trusted-users = [ "root" "printeros" ];
 
+  # mDNS reachability: http://printeros.local once avahi (printeros.remote.mdns) is up.
+  networking.hostName = lib.mkDefault "printeros";
   networking.networkmanager.enable = lib.mkDefault true;
 
   # The operator account. CHANGE THIS — initialPassword is for first-boot testing

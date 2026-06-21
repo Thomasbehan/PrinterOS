@@ -30,12 +30,9 @@ in
       virtualHosts.":80".extraConfig = ''
         encode zstd gzip
 
-        # Live state + actions → Moonraker.
-        handle_path /api/* {
-          reverse_proxy 127.0.0.1:7125
-        }
-        @ws path /websocket
-        handle @ws {
+        # Moonraker API + websocket, served same-origin so the UI needs no CORS.
+        @moonraker path /websocket /server/* /printer/* /access/* /machine/* /api/* /webcam* /devices/*
+        handle @moonraker {
           reverse_proxy 127.0.0.1:7125
         }
 
