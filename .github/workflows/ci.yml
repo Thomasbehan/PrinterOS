@@ -1,0 +1,46 @@
+name: ci
+
+# Fast eval on every push/PR, then a real aarch64 Raspberry Pi SD image build on
+# GitHub's free ARM runners. The image is uploaded as an artifact to flash and test
+# on actual hardware.
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Evaluate flake
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+      - name: Format check
+        run: nix fmt -- --check . || echo "::warning::nixpkgs-fmt reported formatting diffs"
+      - name: Evaluate (no build)
+        run: nix flake check --no-build --show-trace
+
+  image:
+    name: Build Raspberry Pi 4B SD image (aarch64)
+    needs: [check]
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+      - name: Build SD image
+        run: nix build .#sd-image -L --show-trace
+      - name: Collect image
+        run: |
+          mkdir -p artifacts
+          cp -L result/sd-image/*.img.zst artifacts/
+          ( cd artifacts && sha256sum *.img.zst > SHA256SUMS.txt )
+          ls -lh artifacts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rpi4b-sd-image
+          path: artifacts/
+          if-no-files-found: error

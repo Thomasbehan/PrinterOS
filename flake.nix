@@ -35,8 +35,10 @@
     {
       nixosConfigurations.rpi4b = mkSystem { device = ./devices/rpi4b; };
 
-      # `nix build .#images.rpi4b` → flashable SD image (also produced by CI per release).
-      images.rpi4b = self.nixosConfigurations.rpi4b.config.system.build.sdImage;
+      # Flashable SD image. Built by CI on an aarch64 runner: `nix build .#sd-image`.
+      packages.aarch64-linux.sd-image =
+        self.nixosConfigurations.rpi4b.config.system.build.sdImage;
+      packages.aarch64-linux.default = self.packages.aarch64-linux.sd-image;
 
       formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixpkgs-fmt;
       formatter.aarch64-linux = nixpkgs.legacyPackages.aarch64-linux.nixpkgs-fmt;
