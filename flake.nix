@@ -2,7 +2,9 @@
   description = "PrinterOS — modular, declarative NixOS for 3D printers (Bambu-level, fleet-ready)";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    # Stable channel: the Raspberry Pi downstream kernel + deps are cached and
+    # known-good here (unstable's linux-rpi 6.18 currently fails to build).
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
   };
 

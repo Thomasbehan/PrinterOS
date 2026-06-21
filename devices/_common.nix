@@ -20,6 +20,11 @@
   security.sudo.wheelNeedsPassword = lib.mkDefault false;
 
   services.openssh.enable = true;
+
+  # No ZFS on a printer appliance — drops the zfs-kernel build entirely (faster,
+  # avoids kernel-version coupling). SD image uses ext4 + vfat.
+  boot.supportedFilesystems.zfs = lib.mkForce false;
+
   time.timeZone = lib.mkDefault "Europe/London";
   system.stateVersion = lib.mkDefault "25.05";
 }
