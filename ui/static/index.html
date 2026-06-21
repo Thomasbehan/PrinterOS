@@ -4,6 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>PrinterOS</title>
+<link id="favicon" rel="icon" type="image/png" href="logo.png" />
 <style>
   :root {
     --ground: #EDF0EE; --surface: #FFF; --surface-2: #F6F8F6;
@@ -27,6 +28,7 @@
     transition:background-color .4s ease,color .4s ease; }
   .shell { max-width:1180px; margin:0 auto; padding:28px 32px 48px; }
   header { display:flex; align-items:center; gap:28px; padding-bottom:28px; }
+  .brand-logo { height:28px; width:auto; display:block; }
   .brand { display:flex; align-items:center; gap:11px; font-weight:600; font-size:15px; }
   .brand .mark { width:22px; height:22px; border-radius:50%; border:2px solid var(--accent); position:relative; }
   .brand .mark::before,.brand .mark::after { content:""; position:absolute; width:3px; height:3px; border-radius:50%; background:var(--accent); }
@@ -83,7 +85,7 @@
 <body>
 <div class="shell">
   <header>
-    <div class="brand"><span class="mark"></span>PrinterOS</div>
+    <img id="logo" class="brand-logo" src="logo.png" alt="PrinterOS" />
     <nav>
       <a href="#" class="active">Dashboard</a>
       <a href="/fluidd/">Advanced</a>
@@ -141,6 +143,9 @@
   var root = document.documentElement, btn = document.getElementById("theme");
   function cssVar(n){ return getComputedStyle(root).getPropertyValue(n).trim(); }
   function setTheme(m){ root.setAttribute("data-theme",m); btn.textContent = m==="dark"?"☀":"☾";
+    var lg = m==="dark"?"logo-dark.png":"logo.png";
+    var lo=document.getElementById("logo"); if(lo) lo.src=lg;
+    var fav=document.getElementById("favicon"); if(fav) fav.href=lg;
     try{localStorage.setItem("printeros-theme",m);}catch(e){} drawRing(progress); }
   var saved=null; try{saved=localStorage.getItem("printeros-theme");}catch(e){}
   var prefersDark = window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches;
