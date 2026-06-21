@@ -42,14 +42,29 @@ in
       enable = true;
       user = "printeros";
       address = "127.0.0.1"; # exposed only via the Caddy reverse proxy (see ui/serve.nix)
+      allowSystemControl = true; # reboot/shutdown/service control from the UI (needs polkit)
       settings = {
         authorization = {
-          trusted_clients = [ "127.0.0.1" "10.0.0.0/8" "192.168.0.0/16" "FE80::/10" ];
-          cors_domains = [ "*.local" ];
+          trusted_clients = [ "127.0.0.1" "::1" "10.0.0.0/8" "192.168.0.0/16" "172.16.0.0/12" "FE80::/10" ];
+          cors_domains = [ "*.local" "http://*.local" ];
         };
         # Nix owns versions — keep Moonraker from trying to self-update.
         update_manager.enable_auto_refresh = false;
+        # Filament inventory (Spoolman runs locally below).
+        spoolman.server = "http://127.0.0.1:7912";
       };
     };
+
+    # Moonraker needs Klipper's API socket; start it after Klipper.
+    systemd.services.moonraker = {
+      after = [ "klipper.service" ];
+      wants = [ "klipper.service" ];
+    };
+
+    # System control from the UI (reboot/shutdown) is gated on polkit.
+    security.polkit.enable = true;
+
+    # Spoolman — filament spool tracking, integrated into the UI via Moonraker.
+    services.spoolman.enable = true;
   };
 }

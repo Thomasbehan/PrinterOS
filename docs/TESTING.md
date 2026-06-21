@@ -30,6 +30,14 @@ Flash `…​.img` with **Raspberry Pi Imager → Use custom image** to the Pi's
   plug in the **Q5 over USB**, power on.
 - Find it: `ping printeros.local` (mDNS) or check your router's DHCP leases.
 
+### Wi-Fi (optional — Ethernet is the default path)
+
+NetworkManager is enabled, so set Wi-Fi at runtime over SSH (no rebuild):
+
+```sh
+nmcli device wifi connect "<SSID>" password "<PASSWORD>"
+```
+
 ## 4. Log in (first-boot creds — change these)
 
 ```sh
