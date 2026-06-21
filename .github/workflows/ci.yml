@@ -27,7 +27,7 @@ jobs:
       - name: Format check
         run: nix fmt -- --check . || echo "::warning::nixpkgs-fmt reported formatting diffs"
       - name: Evaluate (no build)
-        run: nix flake check --no-build --show-trace
+        run: nix flake check --no-build --accept-flake-config --show-trace
 
   image:
     name: Build Raspberry Pi 4B SD image (aarch64)
@@ -42,12 +42,12 @@ jobs:
           restore-prefixes-first-match: nix-image-
           gc-max-store-size: 8G
       - name: Build SD image
-        run: nix build .#sd-image -L --show-trace
+        run: nix build .#sd-image -L --accept-flake-config --show-trace
       - name: Collect image
         run: |
           mkdir -p artifacts
-          cp -L result/sd-image/*.img.zst artifacts/
-          ( cd artifacts && sha256sum *.img.zst > SHA256SUMS.txt )
+          find -L result -type f \( -name '*.img.zst' -o -name '*.img' \) -exec cp -L {} artifacts/ \;
+          ( cd artifacts && sha256sum * > SHA256SUMS.txt )
           ls -lh artifacts
       - uses: actions/upload-artifact@v4
         with:

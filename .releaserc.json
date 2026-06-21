@@ -10,7 +10,7 @@
           { "path": "artifacts/Robin_nano.bin", "label": "FLSUN Q5 — Klipper firmware (Robin_nano.bin)" },
           { "path": "artifacts/Robin_nano35.bin", "label": "FLSUN Q5 — Klipper firmware (Robin_nano35.bin)" },
           { "path": "artifacts/SHA256SUMS.txt", "label": "Checksums" },
-          { "path": "artifacts/*.img.zst", "label": "NixOS SD image" }
+          { "path": "artifacts/*.img*", "label": "Raspberry Pi 4B SD image" }
         ]
       }
     ]

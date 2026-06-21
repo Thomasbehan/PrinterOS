@@ -75,11 +75,12 @@ jobs:
           restore-prefixes-first-match: nix-image-
           gc-max-store-size: 8G
       - name: Build SD image
-        run: nix build .#sd-image -L --show-trace
+        run: nix build .#sd-image -L --accept-flake-config --show-trace
       - name: Collect image
         run: |
           mkdir -p artifacts
-          cp -L result/sd-image/*.img.zst artifacts/
+          find -L result -type f \( -name '*.img.zst' -o -name '*.img' \) -exec cp -L {} artifacts/ \;
+          ls -lh artifacts
       - uses: actions/upload-artifact@v4
         with:
           name: rpi4b-sd-image
@@ -102,8 +103,8 @@ jobs:
         run: |
           mkdir -p artifacts
           cp dl/flsun-q5-firmware/Robin_nano*.bin artifacts/
-          cp dl/rpi4b-sd-image/*.img.zst artifacts/
-          ( cd artifacts && sha256sum Robin_nano*.bin *.img.zst > SHA256SUMS.txt )
+          cp dl/rpi4b-sd-image/*.img* artifacts/
+          ( cd artifacts && sha256sum Robin_nano*.bin *.img* > SHA256SUMS.txt )
           ls -lh artifacts
       - uses: actions/setup-node@v4
         with:
