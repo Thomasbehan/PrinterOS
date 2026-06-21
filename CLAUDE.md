@@ -211,7 +211,9 @@ Flashing is a first-class feature exposed in the management UI, **not** a manual
 ## 9. Workflow & verification
 
 - **Branch, don't commit to default.** Commit/push only when the user asks.
-- **Commit messages** end with the project's co-author trailer.
+- **Commit messages** use Conventional Commits (`feat:`, `fix:`, `chore:` …) so
+  semantic-release can version on merge to `main`. Author is always `thomasbehan`.
+  **No AI / co-author attribution** in commits or PRs.
 - **Definition of done for any change:**
   1. `nix fmt` clean, `nix flake check` green.
   2. `nixos-rebuild build .#rpi4b` succeeds.

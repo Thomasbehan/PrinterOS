@@ -42,7 +42,12 @@ jobs:
           restore-prefixes-first-match: nix-image-
           gc-max-store-size: 8G
       - name: Build SD image
-        run: nix build .#sd-image -L --accept-flake-config --show-trace
+        run: |
+          n=0
+          until nix build .#sd-image -L --accept-flake-config --show-trace; do
+            n=$((n+1)); [ $n -ge 3 ] && { echo "::error::image build failed after $n attempts"; exit 1; }
+            echo "::warning::transient build/substituter failure — retry $n"; sleep 20
+          done
       - name: Collect image
         run: |
           mkdir -p artifacts
