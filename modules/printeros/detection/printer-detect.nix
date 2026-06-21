@@ -37,7 +37,7 @@ in
       after = [ "printeros-device-detect.service" ];
       serviceConfig.Type = "oneshot";
       serviceConfig.RemainAfterExit = true;
-      path = [ pkgs.coreutils pkgs.findutils pkgs.gnused ];
+      path = [ pkgs.coreutils pkgs.findutils pkgs.gnused pkgs.gnugrep pkgs.util-linux ];
       script = ''
         set -eu
         active=""; dev=""

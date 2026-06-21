@@ -8,12 +8,16 @@
 
   networking.networkmanager.enable = lib.mkDefault true;
 
-  # The operator account. Real auth/keys come via sops-nix (secrets/), never here.
+  # The operator account. CHANGE THIS — initialPassword is for first-boot testing
+  # only; real auth/keys come via sops-nix (secrets/). Lets you SSH in over Ethernet
+  # on first boot (user: printeros / pass: printeros) to bring the Pi up.
   users.users.printeros = {
     isNormalUser = true;
     extraGroups = [ "wheel" "dialout" "video" ];
     description = "PrinterOS operator";
+    initialPassword = lib.mkDefault "printeros";
   };
+  security.sudo.wheelNeedsPassword = lib.mkDefault false;
 
   services.openssh.enable = true;
   time.timeZone = lib.mkDefault "Europe/London";
