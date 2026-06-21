@@ -1,4 +1,9 @@
-# PrinterOS
+<div align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.png" />
+    <img alt="PrinterOS" src="assets/logo.png" width="380" />
+  </picture>
+</div>
 
 A modular, declarative **NixOS** that turns a single-board computer into a
 Bambu-Lab-class 3D-printing appliance — with its own beautifully minimal management

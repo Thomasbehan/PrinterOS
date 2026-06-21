@@ -1,0 +1,56 @@
+name: ci
+
+# CI for branches via pull requests (releases happen only on main — see release.yml).
+# PR-only triggers avoid duplicate push+PR runs. A cached Nix store keeps the aarch64
+# image build fast on the free public ARM runners.
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Evaluate flake
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: nix-community/cache-nix-action@v6
+        with:
+          primary-key: nix-check-${{ hashFiles('**/*.nix') }}
+          restore-prefixes-first-match: nix-check-
+          gc-max-store-size: 5G
+      - name: Format check
+        run: nix fmt -- --check . || echo "::warning::nixpkgs-fmt reported formatting diffs"
+      - name: Evaluate (no build)
+        run: nix flake check --no-build --accept-flake-config --show-trace
+
+  image:
+    name: Build Raspberry Pi 4B SD image (aarch64)
+    needs: [check]
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: nix-community/cache-nix-action@v6
+        with:
+          primary-key: nix-image-${{ hashFiles('**/*.nix', 'ui/static/**') }}
+          restore-prefixes-first-match: nix-image-
+          gc-max-store-size: 8G
+      - name: Build SD image
+        run: nix build .#sd-image -L --accept-flake-config --show-trace
+      - name: Collect image
+        run: |
+          mkdir -p artifacts
+          find -L result -type f \( -name '*.img.zst' -o -name '*.img' \) -exec cp -L {} artifacts/ \;
+          ( cd artifacts && sha256sum * > SHA256SUMS.txt )
+          ls -lh artifacts
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rpi4b-sd-image
+          path: artifacts/
+          if-no-files-found: error

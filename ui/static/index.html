@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>PrinterOS</title>
+<link id="favicon" rel="icon" type="image/png" href="logo.png" />
+<style>
+  :root {
+    --ground: #EDF0EE; --surface: #FFF; --surface-2: #F6F8F6;
+    --text: #1C2422; --muted: #6E756F; --faint: #9AA39D; --border: #E2E6E2;
+    --accent: #3C6E7C; --accent-soft: rgba(60,110,124,.12);
+    --heat: #BE823A; --track: #E4E8E4;
+    --shadow: 0 1px 2px rgba(20,30,28,.04), 0 10px 28px rgba(20,30,28,.05);
+    --font-sans: "Segoe UI Variable Display","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+    --font-mono: "Cascadia Code",ui-monospace,"SF Mono",Consolas,"Liberation Mono",monospace;
+  }
+  [data-theme="dark"] {
+    --ground:#141719; --surface:#1C2022; --surface-2:#23282A;
+    --text:#E7EAE8; --muted:#929B95; --faint:#5E665F; --border:#2A2F31;
+    --accent:#6FA6B7; --accent-soft:rgba(111,166,183,.16);
+    --heat:#D49A57; --track:#272C2E;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 14px 32px rgba(0,0,0,.35);
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; min-height:100vh; background:var(--ground); color:var(--text);
+    font-family:var(--font-sans); -webkit-font-smoothing:antialiased;
+    transition:background-color .4s ease,color .4s ease; }
+  .shell { max-width:1180px; margin:0 auto; padding:28px 32px 48px; }
+  header { display:flex; align-items:center; gap:28px; padding-bottom:28px; }
+  .brand-logo { height:28px; width:auto; display:block; }
+  .brand { display:flex; align-items:center; gap:11px; font-weight:600; font-size:15px; }
+  .brand .mark { width:22px; height:22px; border-radius:50%; border:2px solid var(--accent); position:relative; }
+  .brand .mark::before,.brand .mark::after { content:""; position:absolute; width:3px; height:3px; border-radius:50%; background:var(--accent); }
+  .brand .mark::before { top:-2px; left:50%; transform:translateX(-50%); }
+  .brand .mark::after { bottom:1px; left:1px; box-shadow:11px 0 0 var(--accent); }
+  nav { display:flex; gap:4px; margin-left:8px; }
+  nav a { font-size:13.5px; color:var(--muted); text-decoration:none; padding:7px 13px; border-radius:9px; transition:color .2s,background-color .2s; }
+  nav a:hover { color:var(--text); }
+  nav a.active { color:var(--text); background:var(--surface); box-shadow:var(--shadow); }
+  .header-right { margin-left:auto; display:flex; align-items:center; gap:14px; }
+  .status { display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--muted); }
+  .status .dot { width:7px; height:7px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 4px var(--accent-soft); animation:breathe 2.6s ease-in-out infinite; }
+  .status.offline .dot { background:var(--faint); box-shadow:0 0 0 4px rgba(150,150,150,.12); animation:none; }
+  @keyframes breathe { 0%,100%{opacity:1;} 50%{opacity:.45;} }
+  .icon-btn { width:38px; height:38px; border-radius:11px; border:1px solid var(--border); background:var(--surface); color:var(--text); cursor:pointer; display:grid; place-items:center; font-size:16px; }
+  .icon-btn:hover { background:var(--surface-2); }
+  .icon-btn:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .grid { display:grid; grid-template-columns:1.05fr 1.25fr; gap:20px; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:20px; box-shadow:var(--shadow); }
+  .hero { padding:26px 26px 22px; display:flex; flex-direction:column; }
+  .eyebrow { font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:var(--faint); font-weight:600; }
+  .ring-wrap { position:relative; flex:1; display:grid; place-items:center; margin:6px 0 4px; }
+  .ring-wrap canvas { width:100%; height:auto; display:block; }
+  .ring-center { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:none; }
+  .pct { font-size:68px; font-weight:200; letter-spacing:-.04em; line-height:.9; }
+  .pct span { font-size:26px; font-weight:300; color:var(--muted); }
+  .ring-center .sub { margin-top:8px; font-size:12.5px; color:var(--muted); }
+  .towers { display:flex; justify-content:center; gap:22px; padding-top:6px; font-family:var(--font-mono); font-size:11.5px; color:var(--faint); }
+  .towers b { color:var(--accent); font-weight:600; }
+  .right { display:flex; flex-direction:column; gap:20px; }
+  .job { padding:24px 26px; }
+  .job h1 { margin:8px 0 0; font-size:21px; font-weight:500; letter-spacing:-.02em; word-break:break-all; }
+  .job .meta { margin-top:14px; display:flex; gap:26px; flex-wrap:wrap; }
+  .job .meta div { display:flex; flex-direction:column; gap:3px; }
+  .job .meta .k { font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--faint); }
+  .job .meta .v { font-family:var(--font-mono); font-size:15px; }
+  .metrics { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; padding:22px 26px; }
+  .metric .k { font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--faint); }
+  .metric .v { font-family:var(--font-mono); font-size:27px; margin-top:6px; display:flex; align-items:baseline; gap:6px; }
+  .metric .v small { font-size:12.5px; color:var(--muted); }
+  .bar { height:4px; border-radius:99px; background:var(--track); margin-top:12px; overflow:hidden; }
+  .bar i { display:block; height:100%; border-radius:99px; background:var(--accent); transition:width .5s ease; }
+  .metric.heat .v { color:var(--heat); } .metric.heat .bar i { background:var(--heat); }
+  .controls { display:flex; gap:12px; padding:4px 26px 24px; }
+  .btn { flex:1; padding:14px; border-radius:13px; border:1px solid var(--border); background:var(--surface-2); color:var(--text); font-family:var(--font-sans); font-size:14px; font-weight:500; cursor:pointer; }
+  .btn:hover { background:var(--ground); }
+  .btn.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+  [data-theme="dark"] .btn.primary { color:#0E1314; }
+  footer { margin-top:30px; display:flex; gap:8px; font-size:12px; color:var(--faint); }
+  @media (max-width:760px) { .shell{padding:22px 18px 36px;} .grid{grid-template-columns:1fr;} nav{display:none;} }
+  @media (prefers-reduced-motion: reduce) { .status .dot{animation:none;} }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <img id="logo" class="brand-logo" src="logo.png" alt="PrinterOS" />
+    <nav>
+      <a href="#" class="active">Dashboard</a>
+      <a href="/fluidd/">Advanced</a>
+    </nav>
+    <div class="header-right">
+      <div class="status offline" id="status"><span class="dot"></span><span id="statusText">Connecting…</span></div>
+      <button class="icon-btn" id="theme" aria-label="Switch theme" title="Switch light / dark">☾</button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <section class="card hero">
+      <span class="eyebrow">Print progress</span>
+      <div class="ring-wrap">
+        <canvas id="ring" width="760" height="760"></canvas>
+        <div class="ring-center">
+          <div class="pct"><span id="pctText">0</span><span>%</span></div>
+          <div class="sub" id="layerText">Standing by</div>
+        </div>
+      </div>
+      <div class="towers"><span>Tower <b>A</b></span><span>Tower <b>B</b></span><span>Tower <b>C</b></span></div>
+    </section>
+
+    <div class="right">
+      <section class="card job">
+        <span class="eyebrow" id="jobEyebrow">Idle</span>
+        <h1 id="filename">No active print</h1>
+        <div class="meta">
+          <div><span class="k">Elapsed</span><span class="v" id="elapsed">—</span></div>
+          <div><span class="k">Remaining</span><span class="v" id="remaining">—</span></div>
+          <div><span class="k">State</span><span class="v" id="state">—</span></div>
+        </div>
+      </section>
+
+      <section class="card metrics">
+        <div class="metric heat"><div class="k">Nozzle</div><div class="v"><span id="nozzle">0</span><small>/ <span id="nozzleT">0</span> °C</small></div><div class="bar"><i id="nozzleBar" style="width:0%"></i></div></div>
+        <div class="metric heat"><div class="k">Bed</div><div class="v"><span id="bed">0</span><small>/ <span id="bedT">0</span> °C</small></div><div class="bar"><i id="bedBar" style="width:0%"></i></div></div>
+        <div class="metric"><div class="k">Flow</div><div class="v"><span id="flow">100</span><small>%</small></div><div class="bar"><i id="flowBar" style="width:100%"></i></div></div>
+        <div class="metric"><div class="k">Speed</div><div class="v"><span id="speed">100</span><small>%</small></div><div class="bar"><i id="speedBar" style="width:100%"></i></div></div>
+      </section>
+
+      <div class="controls">
+        <button class="btn" id="pause">Pause</button>
+        <button class="btn" id="cancel">Stop</button>
+        <button class="btn primary" href="/fluidd/" onclick="location.href='/fluidd/'">Advanced</button>
+      </div>
+    </div>
+  </div>
+
+  <footer><span id="conn">Moonraker: connecting…</span></footer>
+</div>
+
+<script>
+(function () {
+  var root = document.documentElement, btn = document.getElementById("theme");
+  function cssVar(n){ return getComputedStyle(root).getPropertyValue(n).trim(); }
+  function setTheme(m){ root.setAttribute("data-theme",m); btn.textContent = m==="dark"?"☀":"☾";
+    var lg = m==="dark"?"logo-dark.png":"logo.png";
+    var lo=document.getElementById("logo"); if(lo) lo.src=lg;
+    var fav=document.getElementById("favicon"); if(fav) fav.href=lg;
+    try{localStorage.setItem("printeros-theme",m);}catch(e){} drawRing(progress); }
+  var saved=null; try{saved=localStorage.getItem("printeros-theme");}catch(e){}
+  var prefersDark = window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches;
+  setTheme(saved || (prefersDark?"dark":"light"));
+  btn.addEventListener("click",function(){ setTheme(root.getAttribute("data-theme")==="dark"?"light":"dark"); });
+
+  // ---- delta ring ----
+  var canvas=document.getElementById("ring"), ctx=canvas.getContext("2d"), progress=0;
+  function drawRing(p){
+    p = p||0;
+    var dpr=Math.min(window.devicePixelRatio||1,2), size=canvas.clientWidth||360;
+    canvas.width=size*dpr; canvas.height=size*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,size,size);
+    var cx=size/2, cy=size/2, r=size*0.40, lw=Math.max(8,size*0.035);
+    var accent=cssVar("--accent"), track=cssVar("--track"), surface=cssVar("--surface");
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.lineWidth=lw; ctx.strokeStyle=track; ctx.stroke();
+    var start=-Math.PI/2, end=start+Math.PI*2*p;
+    ctx.beginPath(); ctx.arc(cx,cy,r,start,end); ctx.lineWidth=lw; ctx.lineCap="round"; ctx.strokeStyle=accent; ctx.stroke();
+    var ta=[-Math.PI/2,Math.PI/6,5*Math.PI/6];
+    for(var i=0;i<3;i++){ var a=ta[i],tx=cx+Math.cos(a)*r,ty=cy+Math.sin(a)*r;
+      ctx.beginPath(); ctx.arc(tx,ty,lw*0.46,0,Math.PI*2); ctx.fillStyle=surface; ctx.fill(); ctx.lineWidth=2.5; ctx.strokeStyle=accent; ctx.stroke(); }
+    var hx=cx+Math.cos(end)*r, hy=cy+Math.sin(end)*r;
+    ctx.globalAlpha=0.18; ctx.strokeStyle=accent; ctx.lineWidth=1.5;
+    for(var j=0;j<3;j++){ ctx.beginPath(); ctx.moveTo(cx+Math.cos(ta[j])*r,cy+Math.sin(ta[j])*r); ctx.lineTo(hx,hy); ctx.stroke(); }
+    ctx.globalAlpha=1; ctx.beginPath(); ctx.arc(hx,hy,lw*0.34,0,Math.PI*2); ctx.fillStyle=accent; ctx.fill();
+  }
+  drawRing(0);
+  window.addEventListener("resize",function(){ drawRing(progress); });
+
+  // ---- Moonraker live client ----
+  var $=function(id){return document.getElementById(id);};
+  function fmt(sec){ if(!sec||sec<0) return "—"; var h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60);
+    return h>0 ? h+"h "+m+"m" : m+"m"; }
+  function setStatus(online,text){ var s=$("status"); s.className="status"+(online?"":" offline"); $("statusText").textContent=text; }
+
+  var rpcId=0;
+  function connect(){
+    var ws;
+    try { ws=new WebSocket((location.protocol==="https:"?"wss":"ws")+"://"+location.host+"/websocket"); }
+    catch(e){ $("conn").textContent="Moonraker: unavailable (demo)"; return retry(); }
+    ws.onopen=function(){
+      setStatus(true,"Connected"); $("conn").textContent="Moonraker: connected";
+      ws.send(JSON.stringify({jsonrpc:"2.0",method:"printer.objects.subscribe",id:++rpcId,
+        params:{objects:{extruder:null,heater_bed:null,print_stats:null,virtual_sdcard:null,gcode_move:null,toolhead:null}}}));
+    };
+    ws.onmessage=function(ev){
+      var msg; try{ msg=JSON.parse(ev.data); }catch(e){ return; }
+      var st = (msg.result && msg.result.status) || (msg.params && msg.params[0]);
+      if(st) apply(st);
+    };
+    ws.onclose=function(){ setStatus(false,"Offline"); $("conn").textContent="Moonraker: disconnected (demo)"; retry(); };
+    ws.onerror=function(){ try{ws.close();}catch(e){} };
+  }
+  var retryT; function retry(){ clearTimeout(retryT); retryT=setTimeout(connect,4000); }
+
+  function apply(s){
+    if(s.extruder){ if(s.extruder.temperature!=null){$("nozzle").textContent=Math.round(s.extruder.temperature);}
+      if(s.extruder.target!=null){ $("nozzleT").textContent=Math.round(s.extruder.target);
+        $("nozzleBar").style.width=(s.extruder.target>0?Math.min(100,100*s.extruder.temperature/s.extruder.target):0)+"%"; } }
+    if(s.heater_bed){ if(s.heater_bed.temperature!=null){$("bed").textContent=Math.round(s.heater_bed.temperature);}
+      if(s.heater_bed.target!=null){ $("bedT").textContent=Math.round(s.heater_bed.target);
+        $("bedBar").style.width=(s.heater_bed.target>0?Math.min(100,100*s.heater_bed.temperature/s.heater_bed.target):0)+"%"; } }
+    if(s.gcode_move){ if(s.gcode_move.speed_factor!=null){var sf=Math.round(s.gcode_move.speed_factor*100);$("speed").textContent=sf;$("speedBar").style.width=Math.min(100,sf)+"%";}
+      if(s.gcode_move.extrude_factor!=null){var ef=Math.round(s.gcode_move.extrude_factor*100);$("flow").textContent=ef;$("flowBar").style.width=Math.min(100,ef)+"%";} }
+    if(s.virtual_sdcard && s.virtual_sdcard.progress!=null){ progress=s.virtual_sdcard.progress;
+      $("pctText").textContent=Math.round(progress*100); drawRing(progress); }
+    if(s.print_stats){
+      var ps=s.print_stats;
+      if(ps.filename){ $("filename").textContent=ps.filename||"No active print"; }
+      if(ps.state){ $("state").textContent=ps.state; $("jobEyebrow").textContent= ps.state==="printing"?"Now printing":ps.state; }
+      if(ps.print_duration!=null){ $("elapsed").textContent=fmt(ps.print_duration); }
+      if(ps.print_duration>0 && progress>0){ $("remaining").textContent=fmt(ps.print_duration*(1-progress)/progress); }
+      if(ps.info && ps.info.total_layer){ $("layerText").textContent="Layer "+(ps.info.current_layer||0)+" / "+ps.info.total_layer; }
+    }
+  }
+
+  function call(method){ try{ var ws=new WebSocket((location.protocol==="https:"?"wss":"ws")+"://"+location.host+"/websocket");
+    ws.onopen=function(){ ws.send(JSON.stringify({jsonrpc:"2.0",method:method,id:++rpcId})); setTimeout(function(){ws.close();},500); }; }catch(e){} }
+  $("pause").addEventListener("click",function(){ call("printer.print.pause"); });
+  $("cancel").addEventListener("click",function(){ if(confirm("Stop the current print?")) call("printer.print.cancel"); });
+
+  connect();
+})();
+</script>
+</body>
+</html>

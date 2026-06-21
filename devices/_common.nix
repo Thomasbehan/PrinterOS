@@ -8,14 +8,23 @@
 
   networking.networkmanager.enable = lib.mkDefault true;
 
-  # The operator account. Real auth/keys come via sops-nix (secrets/), never here.
+  # The operator account. CHANGE THIS — initialPassword is for first-boot testing
+  # only; real auth/keys come via sops-nix (secrets/). Lets you SSH in over Ethernet
+  # on first boot (user: printeros / pass: printeros) to bring the Pi up.
   users.users.printeros = {
     isNormalUser = true;
     extraGroups = [ "wheel" "dialout" "video" ];
     description = "PrinterOS operator";
+    initialPassword = lib.mkDefault "printeros";
   };
+  security.sudo.wheelNeedsPassword = lib.mkDefault false;
 
   services.openssh.enable = true;
+
+  # No ZFS on a printer appliance — drops the zfs-kernel build entirely (faster,
+  # avoids kernel-version coupling). SD image uses ext4 + vfat.
+  boot.supportedFilesystems.zfs = lib.mkForce false;
+
   time.timeZone = lib.mkDefault "Europe/London";
   system.stateVersion = lib.mkDefault "25.05";
 }

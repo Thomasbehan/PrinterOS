@@ -34,10 +34,10 @@ in
       description = "PrinterOS: detect connected printer and assemble active config";
       wantedBy = [ "multi-user.target" ];
       before = [ "klipper.service" ];
-      after = [ "printeros-device-detect.service" "dev-serial-by\\x2did.device" ];
+      after = [ "printeros-device-detect.service" ];
       serviceConfig.Type = "oneshot";
       serviceConfig.RemainAfterExit = true;
-      path = [ pkgs.coreutils pkgs.findutils pkgs.gnused ];
+      path = [ pkgs.coreutils pkgs.findutils pkgs.gnused pkgs.gnugrep pkgs.util-linux ];
       script = ''
         set -eu
         active=""; dev=""
