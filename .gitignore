@@ -1,0 +1,24 @@
+# Nix
+result
+result-*
+.direnv/
+
+# Node / UI
+node_modules/
+ui/.svelte-kit/
+ui/build/
+dist/
+
+# Firmware build artifacts (built by CI, never committed)
+out/
+*.bin
+*.elf
+klipper/
+
+# Secrets — only encrypted .sops files are ever committed
+*.key
+secrets/*.dec
+
+# Editor / OS
+.DS_Store
+*.swp

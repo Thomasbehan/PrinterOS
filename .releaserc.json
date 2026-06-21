@@ -1,0 +1,18 @@
+{
+  "branches": ["main"],
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          { "path": "artifacts/Robin_nano.bin", "label": "FLSUN Q5 — Klipper firmware (Robin_nano.bin)" },
+          { "path": "artifacts/Robin_nano35.bin", "label": "FLSUN Q5 — Klipper firmware (Robin_nano35.bin)" },
+          { "path": "artifacts/SHA256SUMS.txt", "label": "Checksums" },
+          { "path": "artifacts/*.img.zst", "label": "NixOS SD image" }
+        ]
+      }
+    ]
+  ]
+}
