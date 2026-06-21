@@ -1,0 +1,103 @@
+name: release
+
+# Semantic-versioned CD. Conventional-commit messages on `main` drive the version
+# bump (feat → minor, fix → patch, feat! / BREAKING CHANGE → major). Each release
+# attaches build artifacts: the FLSUN Q5 firmware now, NixOS SD images/closures as
+# those jobs come online.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+env:
+  # TODO: pin to a specific Klipper commit SHA for full reproducibility once the
+  # board is confirmed working on a known-good revision.
+  KLIPPER_REF: master
+
+jobs:
+  firmware:
+    name: Build FLSUN Q5 firmware (Robin Nano v1.2)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install ARM toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-arm-none-eabi binutils-arm-none-eabi libnewlib-arm-none-eabi python3
+
+      - name: Checkout Klipper
+        uses: actions/checkout@v4
+        with:
+          repository: Klipper3d/klipper
+          ref: ${{ env.KLIPPER_REF }}
+          path: klipper
+
+      - name: Configure firmware
+        run: |
+          cp firmware/flsun-q5-robin-nano-v12.config klipper/.config
+          make -C klipper olddefconfig
+
+      - name: Assert config is correct (fail on silent drift)
+        working-directory: klipper
+        run: |
+          for sym in CONFIG_MACH_STM32F103 CONFIG_STM32_FLASH_START_7000 \
+                     CONFIG_STM32_CLOCK_REF_8M CONFIG_STM32_SERIAL_USART3; do
+            if ! grep -q "^${sym}=y" .config; then
+              echo "::error::${sym} is not set — refusing to build a possibly-wrong firmware"
+              echo "----- resolved .config -----"; cat .config
+              exit 1
+            fi
+          done
+          echo "Firmware config verified: STM32F103 / 28KiB bootloader / 8MHz / USART3"
+
+      - name: Build
+        run: make -C klipper -j"$(nproc)"
+
+      - name: Patch for MKS Robin bootloader and publish under both names
+        run: |
+          mkdir -p artifacts
+          python3 klipper/scripts/update_mks_robin.py klipper/out/klipper.bin artifacts/Robin_nano.bin
+          cp artifacts/Robin_nano.bin artifacts/Robin_nano35.bin
+          ( cd artifacts && sha256sum Robin_nano.bin Robin_nano35.bin > SHA256SUMS.txt )
+          ls -l artifacts
+
+      - name: Upload firmware artifact (downloadable even without a release)
+        uses: actions/upload-artifact@v4
+        with:
+          name: flsun-q5-firmware
+          path: artifacts/
+          if-no-files-found: error
+
+  release:
+    name: Semantic release
+    needs: [firmware]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch firmware artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: flsun-q5-firmware
+          path: artifacts
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install semantic-release
+        run: npm install -g semantic-release @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/github
+
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release
